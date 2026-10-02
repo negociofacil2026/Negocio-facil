@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Negocio Fácil — MicroApp</title>
+<style>
+:root{
+  --bg:#f5f7fb;--surface:#fff;--text:#172033;--muted:#687386;
+  --primary:#4f46e5;--primary2:#7c3aed;--border:#e5e7eb;
+  --good:#0f9d6e;--danger:#d64545;--shadow:0 10px 30px rgba(23,32,51,.08)
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}.app{max-width:1100px;margin:auto;padding:18px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.brand{font-weight:900;font-size:24px}.brand span{color:var(--primary)}
+nav{display:flex;gap:6px;flex-wrap:wrap}
+nav button,.primary,.secondary{border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+nav button{background:transparent;color:var(--muted)}nav button.active{background:var(--surface);color:var(--primary);box-shadow:var(--shadow)}
+.primary{background:var(--primary);color:white}.secondary{background:var(--surface);border:1px solid var(--border);color:var(--text)}
+.hero{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:20px;padding:24px;box-shadow:var(--shadow);margin-bottom:18px}
+.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;opacity:.9}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+.metric{font-size:25px;font-weight:850;margin-top:6px}.label{color:var(--muted);font-size:13px}
+.section{display:none}.section.active{display:block}
+.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text)}
+.result{margin-top:16px;padding:18px;border-radius:14px;background:#f7f7ff;border:1px solid #dddafe}.big{font-size:32px;font-weight:900;color:var(--primary)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+table{width:100%;border-collapse:collapse;margin-top:12px}th,td{text-align:left;padding:11px;border-bottom:1px solid var(--border);font-size:14px}th{color:var(--muted)}
+.empty{padding:25px;text-align:center;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}}
+@media(max-width:520px){.app{padding:12px}.grid{grid-template-columns:1fr 1fr}.hero h1{font-size:24px}nav{overflow:auto;flex-wrap:nowrap}.card{padding:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="brand">Negocio<span>Fácil</span></div>
+  <nav>
+    <button class="active" data-tab="inicio">Inicio</button>
+    <button data-tab="precio">Precio</button>
+    <button data-tab="caja">Caja</button>
+    <button data-tab="stock">Stock</button>
+  </nav>
+</header>
+
+<section id="inicio" class="section active">
+  <div class="hero">
+    <h1>Controlá tu negocio desde el celular</h1>
+    <p>Calculá precios, registrá caja y controlá stock en segundos.</p>
+  </div>
+  <div class="grid">
+    <div class="card"><div class="label">Ventas registradas</div><div class="metric" id="mVentas">$0</div></div>
+    <div class="card"><div class="label">Ganancia estimada</div><div class="metric" id="mGanancia">$0</div></div>
+    <div class="card"><div class="label">Movimientos de caja</div><div class="metric" id="mMov">0</div></div>
+    <div class="card"><div class="label">Productos</div><div class="metric" id="mStock">0</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2>Cómo usarla</h2>
+    <p>1. Calculá un precio rentable. 2. Registrá ingresos y egresos. 3. Agregá tus productos y cantidades.</p>
+    <p class="note">Los datos quedan guardados localmente en este dispositivo.</p>
+  </div>
+</section>
+
+<section id="precio" class="section">
+  <div class="card">
+    <h2>Calculadora de precio de venta</h2>
+    <div class="formgrid">
+      <div class="field"><label>Costo del producto</label><input id="costo" type="number" min="0" value="10000"></div>
+      <div class="field"><label>Gastos adicionales</label><input id="gastos" type="number" min="0" value="1000"></div>
+      <div class="field"><label>Ganancia deseada (%)</label><input id="gan" type="number" min="0" value="40"></div>
+      <div class="field"><label>Cantidad a vender por mes</label><input id="cant" type="number" min="1" value="30"></div>
+    </div>
+    <div class="result">
+      <div class="label">Precio sugerido</div><div class="big" id="precioResult">$0</div>
+      <div id="precioDetalle"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="calcularPrecio()">Calcular</button></div>
+  </div>
+</section>
+
+<section id="caja" class="section">
+  <div class="card">
+    <h2>Caja diaria</h2>
+    <div class="formgrid">
+      <div class="field"><label>Concepto</label><input id="concepto" placeholder="Venta, compra, envío..."></div>
+      <div class="field"><label>Monto</label><input id="monto" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" onclick="movimiento('ingreso')">+ Ingreso</button>
+      <button class="secondary" onclick="movimiento('egreso')">− Egreso</button>
+    </div>
+    <table><thead><tr><th>Concepto</th><th>Tipo</th><th>Monto</th><th></th></tr></thead><tbody id="tablaCaja"></tbody></table>
+  </div>
+</section>
+
+<section id="stock" class="section">
+  <div class="card">
+    <h2>Control de stock</h2>
+    <div class="formgrid">
+      <div class="field"><label>Producto</label><input id="producto" placeholder="Ej. Remera"></div>
+      <div class="field"><label>Cantidad</label><input id="cantidad" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="actions"><button class="primary" onclick="agregarStock()">Agregar / actualizar</button></div>
+    <table><thead><tr><th>Producto</th><th>Cantidad</th><th>Estado</th><th></th></tr></thead><tbody id="tablaStock"></tbody></table>
+  </div>
+</section>
+</div>
+
+<script>
+const key='negocio_facil_v1';
+let data=JSON.parse(localStorage.getItem(key)||'{"caja":[],"stock":[]}');
+const money=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(n||0);
+function save(){localStorage.setItem(key,JSON.stringify(data));render()}
+function calcularPrecio(){
+ const c=+document.getElementById('costo').value||0,g=+document.getElementById('gastos').value||0,
+       p=+document.getElementById('gan').value||0,q=+document.getElementById('cant').value||1;
+ const base=c+g, precio=base*(1+p/100), ganancia=precio-base;
+ document.getElementById('precioResult').textContent=money(precio);
+ document.getElementById('precioDetalle').innerHTML=`Costo total: <b>${money(base)}</b> · Ganancia por unidad: <b>${money(ganancia)}</b> · Ganancia mensual estimada: <b>${money(ganancia*q)}</b>`;
+}
+function movimiento(tipo){
+ const concepto=document.getElementById('concepto').value.trim(), monto=+document.getElementById('monto').value||0;
+ if(!concepto||monto<=0){alert('Completá concepto y monto.');return}
+ data.caja.unshift({id:Date.now(),concepto,tipo,monto});
+ document.getElementById('concepto').value='';document.getElementById('monto').value='';save();
+}
+function borrarCaja(id){data.caja=data.caja.filter(x=>x.id!==id);save()}
+function agregarStock(){
+ const nombre=document.getElementById('producto').value.trim(), cantidad=+document.getElementById('cantidad').value||0;
+ if(!nombre||cantidad<0){alert('Completá producto y cantidad.');return}
+ const old=data.stock.find(x=>x.nombre.toLowerCase()===nombre.toLowerCase());
+ if(old) old.cantidad=cantidad; else data.stock.push({id:Date.now(),nombre,cantidad});
+ document.getElementById('producto').value='';document.getElementById('cantidad').value='';save();
+}
+function borrarStock(id){data.stock=data.stock.filter(x=>x.id!==id);save()}
+function render(){
+ const ingresos=data.caja.filter(x=>x.tipo==='ingreso').reduce((a,x)=>a+x.monto,0);
+ const egresos=data.caja.filter(x=>x.tipo==='egreso').reduce((a,x)=>a+x.monto,0);
+ document.getElementById('mVentas').textContent=money(ingresos);
+ document.getElementById('mGanancia').textContent=money(ingresos-egresos);
+ document.getElementById('mMov').textContent=data.caja.length;
+ document.getElementById('mStock').textContent=data.stock.length;
+ document.getElementById('tablaCaja').innerHTML=data.caja.length?data.caja.map(x=>`<tr><td>${esc(x.concepto)}</td><td>${x.tipo==='ingreso'?'Ingreso':'Egreso'}</td><td>${money(x.monto)}</td><td><button class="secondary" onclick="borrarCaja(${x.id})">×</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Todavía no hay movimientos.</td></tr>';
+ document.getElementById('tablaStock').innerHTML=data.stock.length?data.stock.map(x=>`<tr><td>${esc(x.nombre)}</td><td>${x.cantidad}</td><td>${x.cantidad<=3?'⚠️ Bajo':'✓ OK'}</td><td><button class="secondary" onclick="borrarStock(${x.id})">×</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Todavía no hay productos.</td></tr>';
+}
+function esc(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));document.getElementById(b.dataset.tab).classList.add('active');
+});
+calcularPrecio();render();
+</script>
+</body>
+</html>
